@@ -1,6 +1,17 @@
 import { API_CONFIG } from '../config/apiConfig'
 import type { LyricCacheEntry } from './types'
 
+/** lrclib.net 搜索结果条目 */
+interface LrclibResult {
+  id: number
+  trackName: string
+  artistName: string
+  albumName: string
+  duration: number
+  syncedLyrics: string | null
+  plainLyrics: string | null
+}
+
 /**
  * 带超时和重试的 fetch 封装
  */
@@ -26,10 +37,8 @@ async function fetchWithRetry(
       clearTimeout(timer)
       lastError = err instanceof Error ? err : new Error(String(err))
 
-      // 最后一次重试也失败了就抛出
       if (attempt === options.retryCount) break
 
-      // 重试前等待一小段时间
       await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
     }
   }
@@ -49,7 +58,6 @@ function getCache(artist: string, title: string): string | null {
     if (!raw) return null
 
     const entry: LyricCacheEntry = JSON.parse(raw)
-    // 检查是否过期
     if (Date.now() - entry.timestamp > API_CONFIG.cacheExpiry) {
       localStorage.removeItem(getCacheKey(artist, title))
       return null
@@ -72,20 +80,21 @@ function setCache(artist: string, title: string, lrcText: string): void {
 // ========== 对外接口 ==========
 
 /**
- * 搜索歌词
+ * 搜索歌词（使用 lrclib.net）
  * @returns LRC格式歌词文本，找不到时返回 null
  */
 export async function searchLyric(
   artist: string,
   title: string
 ): Promise<string | null> {
-  // 1. 优先读缓存
   const cached = getCache(artist, title)
   if (cached) return cached
 
-  // 2. 调用API
-  const params = new URLSearchParams({ artist, title })
-  const url = `${API_CONFIG.baseUrl}/lyrics?${params.toString()}`
+  const params = new URLSearchParams({
+    track_name: title,
+    artist_name: artist,
+  })
+  const url = `${API_CONFIG.baseUrl}/search?${params.toString()}`
 
   try {
     const res = await fetchWithRetry(url, {
@@ -93,12 +102,16 @@ export async function searchLyric(
       retryCount: API_CONFIG.retryCount,
     })
 
-    const text = await res.text()
-    if (!text || text.trim().length === 0) return null
+    const results: LrclibResult[] = await res.json()
+    if (!results || results.length === 0) return null
 
-    // 3. 写入缓存
-    setCache(artist, title, text)
-    return text
+    // 优先取带时间戳的歌词，其次纯文本
+    const withSync = results.find((r) => r.syncedLyrics)
+    const lrcText = withSync?.syncedLyrics ?? results[0]?.plainLyrics
+    if (!lrcText) return null
+
+    setCache(artist, title, lrcText)
+    return lrcText
   } catch (err) {
     console.warn('[歌词API] 获取失败:', err)
     return null
@@ -107,26 +120,9 @@ export async function searchLyric(
 
 /**
  * 获取歌曲封面URL
- * @returns 封面图片URL，找不到时返回 null
+ * lrclib.net 不提供封面，当前返回 null
  */
-export async function getCover(
-  artist: string,
-  title: string
-): Promise<string | null> {
-  const params = new URLSearchParams({ artist, title })
-  const url = `${API_CONFIG.baseUrl}/cover?${params.toString()}`
-
-  try {
-    const res = await fetchWithRetry(url, {
-      timeout: API_CONFIG.timeout,
-      retryCount: 1,
-    })
-
-    const blob = await res.blob()
-    if (blob.size === 0) return null
-
-    return URL.createObjectURL(blob)
-  } catch {
-    return null
-  }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function getCover(artist: string, title: string): Promise<string | null> {
+  return null
 }

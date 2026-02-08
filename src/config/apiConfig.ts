@@ -1,15 +1,10 @@
 /** 歌词API配置 */
 export const API_CONFIG = {
-  /** API基础路径（开发环境通过Vite代理转发） */
-  baseUrl: '/lrcapi',
-
-  /** 歌词源列表，按优先级排序 */
-  lyricSources: [
-    { name: 'LrcApi', baseUrl: '/lrcapi', enabled: true },
-  ],
+  /** API基础路径（lrclib.net 支持CORS，浏览器可直连） */
+  baseUrl: 'https://lrclib.net/api',
 
   /** 请求超时时间（毫秒） */
-  timeout: 5000,
+  timeout: 8000,
 
   /** 失败重试次数 */
   retryCount: 2,

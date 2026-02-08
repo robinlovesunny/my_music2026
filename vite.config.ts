@@ -9,13 +9,4 @@ export default defineConfig({
       'jsmediatags': 'jsmediatags/dist/jsmediatags.min.js',
     },
   },
-  server: {
-    proxy: {
-      '/lrcapi': {
-        target: 'https://api.lrc.cx',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/lrcapi/, ''),
-      },
-    },
-  },
 })
