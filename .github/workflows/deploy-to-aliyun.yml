@@ -28,10 +28,21 @@ jobs:
       - name: 构建项目
         run: npm run build
       
+      - name: 上传构建文件到ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ALIYUN_SSH_HOST }}
+          username: ${{ secrets.ALIYUN_SSH_USER }}
+          key: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.ALIYUN_SSH_PORT || 22 }}
+          source: "dist/*"
+          target: "/tmp/my-music-player-build"
+          strip_components: 1
+      
       - name: 部署到ECS服务器
         uses: appleboy/ssh-action@v1.0.0
         env:
-          DEPLOY_PORT: 3000  # 可根据实际情况修改端口
+          DEPLOY_PORT: 3000
         with:
           host: ${{ secrets.ALIYUN_SSH_HOST }}
           username: ${{ secrets.ALIYUN_SSH_USER }}
@@ -39,15 +50,29 @@ jobs:
           port: ${{ secrets.ALIYUN_SSH_PORT || 22 }}
           envs: DEPLOY_PORT
           script: |
-            # 设置应用配置
-            export APP_NAME="my-music-player"
-            export APP_DIR="$HOME/apps/$APP_NAME"
-            export GIT_REPO="${{ github.server_url }}/${{ github.repository }}.git"
-            export GIT_BRANCH="${{ github.ref_name }}"
+            # 设置配置
+            APP_NAME="my-music-player"
+            APP_DIR="$HOME/apps/$APP_NAME"
             
-            # 执行部署脚本
-            cd $APP_DIR || exit 1
-            bash scripts/deploy.sh
+            # 创建应用目录
+            mkdir -p $APP_DIR
+            
+            # 复制构建文件
+            rm -rf $APP_DIR/dist
+            mv /tmp/my-music-player-build $APP_DIR/dist
+            
+            # 停止旧版本
+            pm2 delete $APP_NAME 2>/dev/null || true
+            
+            # 安装serve(如果未安装)
+            command -v serve >/dev/null 2>&1 || npm install -g serve
+            
+            # 启动新版本
+            cd $APP_DIR
+            pm2 start serve --name $APP_NAME -- -s dist -l $DEPLOY_PORT
+            pm2 save
+            
+            echo "部署完成! 访问地址: http://$(curl -s ifconfig.me):$DEPLOY_PORT"
       
       - name: 部署状态通知
         if: always()
