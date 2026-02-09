@@ -26,3 +26,15 @@ jobs:
             /review-pr
             REPO:${{ github.repository }} PR_NUMBER:${{ github.event.pull_request.number }}
             OUTPUT_LANGUAGE:Chinese
+
+            代码审查规范：
+            1. 代码质量和最佳实践检查
+            2. TypeScript 类型安全性验证
+            3. React 组件设计规范评估
+            4. 性能优化建议
+            5. 安全性检查（重点）：
+               - 检查是否存在弱口令（如 password123, admin123 等简单密码）
+               - 检查是否有硬编码的敏感信息（AK/SK、API密钥、数据库连接字符串等）
+               - 检查环境变量是否正确使用
+               - 检查是否有明文存储的凭证信息
+               - 检查第三方库的安全版本
