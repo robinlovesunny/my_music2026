@@ -3,11 +3,13 @@ import LyricMeta from '../Lyrics/LyricMeta'
 import LyricDisplay from '../Lyrics/LyricDisplay'
 import WikiTab from './WikiTab'
 import RecommendTab from './RecommendTab'
+import LibraryTab from './LibraryTab'
 
-type TabKey = 'lyrics' | 'wiki' | 'recommend'
+type TabKey = 'lyrics' | 'wiki' | 'recommend' | 'library'
 
 const tabs: { key: TabKey; label: string }[] = [
   { key: 'lyrics', label: '歌词' },
+  { key: 'library', label: '曲库' },
   { key: 'wiki', label: '百科' },
   { key: 'recommend', label: '相似推荐' },
 ]
@@ -42,6 +44,7 @@ export default function TabContainer() {
             <LyricDisplay />
           </>
         )}
+        {activeTab === 'library' && <LibraryTab />}
         {activeTab === 'wiki' && <WikiTab />}
         {activeTab === 'recommend' && <RecommendTab />}
       </div>

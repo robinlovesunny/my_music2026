@@ -4,22 +4,34 @@ import SongHeader from './components/SongInfo/SongHeader'
 import TabContainer from './components/ContentTabs/TabContainer'
 import ControlBar from './components/Controls/ControlBar'
 import PlaylistDrawer from './components/Playlist/PlaylistDrawer'
-import DragDropZone from './components/FileImport/DragDropZone'
+import HomePage from './components/Home/HomePage'
+import LibraryTab from './components/ContentTabs/LibraryTab'
 import DynamicGradient from './components/Background/DynamicGradient'
 import { usePlayerStore } from './store/playerStore'
 import { usePlaylistStore } from './store/playlistStore'
 import { extractColors } from './core/ColorExtractor'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { getCover } from './api/lyricApi'
+import { ArrowLeft } from 'lucide-react'
+
+type ViewMode = 'home' | 'library' | 'player'
 
 function App() {
   const currentSong = usePlayerStore((s) => s.currentSong)
   const playerMode = usePlayerStore((s) => s.playerMode)
   const playlist = usePlaylistStore((s) => s.playlist)
   const [bgColors, setBgColors] = useState<[number, number, number][]>()
+  const [viewMode, setViewMode] = useState<ViewMode>('home')
 
   // 注册键盘快捷键
   useKeyboardShortcuts()
+
+  // 当有歌曲播放时自动切换到播放器视图
+  useEffect(() => {
+    if (currentSong && viewMode === 'home') {
+      setViewMode('player')
+    }
+  }, [currentSong, viewMode])
 
   // 封面变化时提取颜色
   useEffect(() => {
@@ -51,13 +63,32 @@ function App() {
     <div className="h-screen flex flex-col overflow-hidden">
       <DynamicGradient colors={bgColors} />
 
-      {isEmpty ? (
-        /* 空状态：拖拽导入区 */
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-full max-w-lg">
-            <DragDropZone />
+      {/* 曲库视图返回按钮 */}
+      {viewMode === 'library' && (
+        <div className="absolute top-4 left-4 z-50">
+          <button
+            onClick={() => setViewMode(isEmpty ? 'home' : 'player')}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-bg-card/80 backdrop-blur-xl border border-primary/20 text-text-primary hover:border-primary/50 hover:bg-bg-card transition-all hover:shadow-[0_0_20px_rgba(0,255,136,0.2)]"
+          >
+            <ArrowLeft size={16} />
+            <span className="text-sm">返回</span>
+          </button>
+        </div>
+      )}
+
+      {viewMode === 'home' ? (
+        /* 首页：选择曲库或导入 */
+        <HomePage onOpenLibrary={() => setViewMode('library')} />
+      ) : viewMode === 'library' ? (
+        /* 曲库视图 */
+        <div className="flex-1 flex items-center justify-center p-8 pb-24">
+          <div className="w-full max-w-4xl h-[calc(100vh-200px)] bg-bg-card/80 backdrop-blur-xl rounded-2xl border border-primary/20 p-6 shadow-[0_0_40px_rgba(0,0,0,0.5)]">
+            <LibraryTab />
           </div>
         </div>
+      ) : isEmpty ? (
+        /* 空状态：返回首页 */
+        <HomePage onOpenLibrary={() => setViewMode('library')} />
       ) : playerMode === 'mini' ? (
         /* 迷你模式：仅显示歌曲信息 */
         <div className="flex-1 flex items-center justify-center pb-[88px]">

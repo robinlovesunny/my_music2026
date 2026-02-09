@@ -6,6 +6,12 @@ on:
 
 jobs:
   qoder-review:
+    # 当 PR 标题或分支名包含跳过关键词时不执行评审，如修复登录bug [skip review]
+    if: |
+      !contains(github.event.pull_request.title, '[skip review]') &&
+      !contains(github.event.pull_request.title, '[skip cr]') &&
+      !contains(github.event.pull_request.head.ref, 'skip-review') &&
+      !contains(github.event.pull_request.body || '', '[skip review]')
     runs-on: ubuntu-latest
     permissions:
       contents: read
