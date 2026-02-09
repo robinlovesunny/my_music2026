@@ -1,0 +1,60 @@
+name: 部署到阿里云ECS
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:  # 支持手动触发
+
+jobs:
+  deploy:
+    name: 部署应用到ECS
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+      
+      - name: 设置Node.js环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: 安装依赖
+        run: npm ci
+      
+      - name: 构建项目
+        run: npm run build
+      
+      - name: 部署到ECS服务器
+        uses: appleboy/ssh-action@v1.0.0
+        env:
+          DEPLOY_PORT: 3000  # 可根据实际情况修改端口
+        with:
+          host: ${{ secrets.ALIYUN_SSH_HOST }}
+          username: ${{ secrets.ALIYUN_SSH_USER }}
+          key: ${{ secrets.ALIYUN_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.ALIYUN_SSH_PORT || 22 }}
+          envs: DEPLOY_PORT
+          script: |
+            # 设置应用配置
+            export APP_NAME="my-music-player"
+            export APP_DIR="$HOME/apps/$APP_NAME"
+            export GIT_REPO="${{ github.server_url }}/${{ github.repository }}.git"
+            export GIT_BRANCH="${{ github.ref_name }}"
+            
+            # 执行部署脚本
+            cd $APP_DIR || exit 1
+            bash scripts/deploy.sh
+      
+      - name: 部署状态通知
+        if: always()
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            echo "✓ 部署成功!"
+            echo "访问地址: http://${{ secrets.ALIYUN_SSH_HOST }}:3000"
+          else
+            echo "✗ 部署失败,请查看日志"
+          fi

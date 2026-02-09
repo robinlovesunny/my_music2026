@@ -123,6 +123,6 @@ export async function searchLyric(
  * lrclib.net 不提供封面，当前返回 null
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function getCover(artist: string, title: string): Promise<string | null> {
+export async function getCover(_artist: string, _title: string): Promise<string | null> {
   return null
 }
