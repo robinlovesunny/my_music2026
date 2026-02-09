@@ -9,4 +9,10 @@ export default defineConfig({
       'jsmediatags': 'jsmediatags/dist/jsmediatags.min.js',
     },
   },
+  server: {
+    fs: {
+      // 允许访问 music_database 目录
+      allow: ['..']
+    }
+  }
 })
