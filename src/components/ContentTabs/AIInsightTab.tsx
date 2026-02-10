@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { usePlayerStore } from '../../store/playerStore'
-import { useSettingsStore, getDecodedApiKey } from '../../store/settingsStore'
+import { useSettingsStore } from '../../store/settingsStore'
 import { useAIInsight } from '../../hooks/useAIInsight'
 import LyricCardGenerator from './LyricCardGenerator'
 import {
