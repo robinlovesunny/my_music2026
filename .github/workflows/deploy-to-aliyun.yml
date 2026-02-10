@@ -52,14 +52,15 @@ jobs:
           script: |
             # 设置配置
             APP_NAME="my-music-player"
-            APP_DIR="$HOME/apps/$APP_NAME"
+            APP_DIR="/var/www/$APP_NAME"
             
-            # 创建应用目录
-            mkdir -p $APP_DIR
+            # 创建应用目录（Nginx 可访问）
+            sudo mkdir -p $APP_DIR
             
             # 复制构建文件
-            rm -rf $APP_DIR/dist
-            mv /tmp/my-music-player-build/dist $APP_DIR/dist
+            sudo rm -rf $APP_DIR/dist
+            sudo mv /tmp/my-music-player-build/dist $APP_DIR/dist
+            sudo chmod -R 755 $APP_DIR
             
             # 停止旧的 serve 进程（如果有）
             pm2 delete $APP_NAME 2>/dev/null || true
