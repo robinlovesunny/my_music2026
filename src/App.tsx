@@ -12,10 +12,9 @@ import { usePlaylistStore } from './store/playlistStore'
 import { extractColors } from './core/ColorExtractor'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { getCover } from './api/lyricApi'
-import AdminPage from './components/Admin/AdminPage'
-import { ArrowLeft, Settings } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 
-type ViewMode = 'home' | 'library' | 'player' | 'admin'
+type ViewMode = 'home' | 'library' | 'player'
 
 function App() {
   const currentSong = usePlayerStore((s) => s.currentSong)
@@ -77,23 +76,7 @@ function App() {
         </div>
       )}
 
-      {/* 管理员入口按钮 */}
-      {viewMode !== 'admin' && (
-        <div className="absolute top-4 right-4 z-50">
-          <button
-            onClick={() => setViewMode('admin')}
-            className="p-2.5 rounded-lg bg-bg-card/60 backdrop-blur-xl border border-primary/10 text-text-dim hover:text-primary hover:border-primary/30 transition-all cursor-pointer"
-            title="管理员设置"
-          >
-            <Settings size={16} />
-          </button>
-        </div>
-      )}
-
-      {viewMode === 'admin' ? (
-        /* 管理员页面 */
-        <AdminPage onBack={() => setViewMode(isEmpty ? 'home' : 'player')} />
-      ) : viewMode === 'home' ? (
+      {viewMode === 'home' ? (
         /* 首页：选择曲库或导入 */
         <HomePage onOpenLibrary={() => setViewMode('library')} />
       ) : viewMode === 'library' ? (

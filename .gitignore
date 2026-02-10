@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 *.qoder
 generate-deeplink.js
+
+*.env

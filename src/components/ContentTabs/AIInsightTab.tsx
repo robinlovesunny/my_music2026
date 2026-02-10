@@ -28,7 +28,7 @@ export default function AIInsightTab() {
   const qwenApiKey = useSettingsStore((s) => s.qwenApiKey)
   const setQwenApiKey = useSettingsStore((s) => s.setQwenApiKey)
 
-  const hasApiKey = !!qwenApiKey || !!import.meta.env.VITE_DASHSCOPE_API_KEY
+  const hasApiKey = !!qwenApiKey
 
   // 切歌时自动获取
   useEffect(() => {
@@ -117,8 +117,11 @@ export default function AIInsightTab() {
               /* 未配置API Key */
               <div className="flex flex-col items-center justify-center gap-3 py-6">
                 <KeyRound size={32} className="text-amber-400/60" />
-                <p className="text-sm text-text-muted text-center">
-                  请先配置通义千问 API Key
+                <p className="text-sm text-text-muted text-center leading-relaxed">
+                  使用 AI 功能需要配置百炼 API Key
+                </p>
+                <p className="text-xs text-text-dim text-center leading-relaxed max-w-[280px]">
+                  前往阿里云百炼平台免费开通，新用户可领取免费额度
                 </p>
                 <button
                   onClick={() => setShowKeyModal(true)}
